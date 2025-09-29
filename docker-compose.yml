@@ -33,7 +33,6 @@ services:
 
     volumes:
       - ./models:/build/models
-      - /usr/lib/wsl/lib/nvidia-smi:/usr/local/bin/nvidia-smi
     ports:
       - "8081:8080"
     stdin_open: true
