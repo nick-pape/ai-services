@@ -1,4 +1,21 @@
+# ==============================================================================
+# AI Services Docker Compose Configuration
+# ==============================================================================
+# This docker-compose file sets up a complete AI services stack including:
+# - Kokoro TTS (Text-to-Speech service)
+# - Ollama (Local Language Model server)
+# - Open WebUI (Web interface for interacting with AI models)
+# - Speaches (Speech processing service)
+# 
+# All services are configured for NVIDIA GPU acceleration on ARM64 architecture
+# ==============================================================================
+
 services:
+  # ==============================================================================
+  # Kokoro FastAPI TTS Service
+  # ==============================================================================
+  # Text-to-Speech service using Kokoro TTS models
+  # Provides FastAPI endpoint for TTS functionality
   kokoro-fastapi:
     container_name: kokoro-fastapi
     image: dustynv/kokoro-tts:fastapi-r36.4.0-cu128-24.04
@@ -6,11 +23,15 @@ services:
     platform: linux/arm64/v8
     runtime: nvidia
     gpus: all
+    
+    # Environment variables for NVIDIA GPU configuration
     environment:
       NVIDIA_REQUIRE_CUDA: "cuda>=12.6"
       CUDA_VERSION: "12.6.0"
       NVIDIA_VISIBLE_DEVICES: "all"
       NVIDIA_DRIVER_CAPABILITIES: "compute,utility"
+    
+    # GPU resource allocation
     deploy:
       resources:
         reservations:
@@ -18,9 +39,16 @@ services:
             - driver: nvidia
               count: all
               capabilities: [gpu]
+    
+    # Port mapping - TTS API endpoint
     ports:
-      - "8880:8880"
+      - "${KOKORO_PORT:-8880}:8880"
 
+  # ==============================================================================
+  # Ollama Language Model Server
+  # ==============================================================================
+  # Local language model server for running various LLMs
+  # Provides API endpoints for chat completion and embeddings
   ollama:
     container_name: ollama
     image: ollama/ollama:latest
@@ -28,6 +56,15 @@ services:
     platform: linux/arm64/v8
     runtime: nvidia
     gpus: all
+    stdin_open: true
+    tty: true
+    
+    # Environment variables for NVIDIA GPU configuration
+    environment:
+      NVIDIA_VISIBLE_DEVICES: "all"
+      NVIDIA_DRIVER_CAPABILITIES: "compute,utility"
+    
+    # GPU resource allocation
     deploy:
       resources:
         reservations:
@@ -35,16 +72,20 @@ services:
             - driver: nvidia
               count: all
               capabilities: [gpu]
-    environment:
-      NVIDIA_VISIBLE_DEVICES: "all"
-      NVIDIA_DRIVER_CAPABILITIES: "compute,utility"
+    
+    # Persistent storage for models and configurations
     volumes:
       - /data/cache/ollama:/root/.ollama
+    
+    # Port mapping - Ollama API endpoint
     ports:
-      - "11434:11434"
-    stdin_open: true
-    tty: true
+      - "${OLLAMA_PORT:-11434}:11434"
 
+  # ==============================================================================
+  # Open WebUI
+  # ==============================================================================
+  # Web interface for interacting with AI models
+  # Provides chat interface and connects to Ollama and TTS services
   open-webui:
     container_name: open-webui
     image: ghcr.io/open-webui/open-webui:main
@@ -53,14 +94,25 @@ services:
     runtime: nvidia
     gpus: all
     network_mode: host
+    
+    # Service URLs configuration
     environment:
-      TTS_BACKEND_URL: http://127.0.0.1:8880
-      OLLAMA_BASE_URL: http://127.0.0.1:11434
+      TTS_BACKEND_URL: http://127.0.0.1:${KOKORO_PORT:-8880}
+      OLLAMA_BASE_URL: http://127.0.0.1:${OLLAMA_PORT:-11434}
+    
+    # Persistent storage for user data and configurations
     volumes:
       - ./open-webui:/app/backend/data
+    
+    # Service dependencies
     depends_on:
       - ollama
 
+  # ==============================================================================
+  # Speaches Speech Processing Service
+  # ==============================================================================
+  # Speech processing and recognition service
+  # Provides speech-to-text and related functionality
   speaches:
     container_name: speaches
     image: dustynv/speaches:r36.4.0-cu128-24.04
@@ -68,16 +120,13 @@ services:
     platform: linux/arm64/v8
     runtime: nvidia
     gpus: all
-    ports:
-      - 8000:8000
-    healthcheck:
-      test: ["CMD", "curl", "--fail", "http://0.0.0.0:8000/health"] # TODO: won't work if a user changes the port
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 5s
-    volumes:
-      - /data/cache/huggingface:/home/ubuntu/.cache/huggingface
+    
+    # Environment variables for NVIDIA GPU configuration
+    environment:
+      NVIDIA_VISIBLE_DEVICES: "all"
+      NVIDIA_DRIVER_CAPABILITIES: "compute,utility"
+    
+    # GPU resource allocation
     deploy:
       resources:
         reservations:
@@ -85,3 +134,19 @@ services:
             - driver: nvidia
               count: all
               capabilities: [gpu]
+    
+    # Port mapping - Speech processing API endpoint
+    ports:
+      - "${SPEACHES_PORT:-8000}:8000"
+    
+    # Health check configuration
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://0.0.0.0:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+    
+    # Persistent storage for HuggingFace models cache
+    volumes:
+      - /data/cache/huggingface:/home/ubuntu/.cache/huggingface
