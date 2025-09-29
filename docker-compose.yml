@@ -1,9 +1,7 @@
-version: "3.9"
-
 services:
   kokoro-fastapi:
     container_name: kokoro-fastapi
-    image: docker.pape.house:5000/dustynv/kokoro-tts:fastapi-r36.4.0-cu128-24.04
+    image: dustynv/kokoro-tts:fastapi-r36.4.0-cu128-24.04
     restart: unless-stopped
     platform: linux/arm64/v8
     runtime: nvidia
@@ -25,7 +23,7 @@ services:
 
   ollama:
     container_name: ollama
-    image: docker.pape.house:5000/ollama/ollama:latest
+    image: ollama/ollama:latest
     restart: unless-stopped
     platform: linux/arm64/v8
     runtime: nvidia
@@ -49,7 +47,7 @@ services:
 
   open-webui:
     container_name: open-webui
-    image: docker.pape.house:5000/open-webui/open-webui:main
+    image: ghcr.io/open-webui/open-webui:main
     restart: unless-stopped
     platform: linux/arm64/v8
     runtime: nvidia
@@ -65,6 +63,7 @@ services:
 
   speaches:
     container_name: speaches
+    image: dustynv/speaches:r36.4.0-cu128-24.04
     restart: unless-stopped
     platform: linux/arm64/v8
     runtime: nvidia
@@ -77,7 +76,6 @@ services:
       timeout: 10s
       retries: 3
       start_period: 5s
-    image: docker.pape.house:5000/speaches-ai/speaches:latest-cuda-12.6.3
     volumes:
       - /data/cache/huggingface:/home/ubuntu/.cache/huggingface
     deploy:
