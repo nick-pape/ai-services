@@ -2,14 +2,17 @@ version: "3.9"
 
 services:
   kokoro-fastapi:
-    image: ghcr.io/remsky/kokoro-fastapi-gpu:latest
+    platform: linux/arm64/v8
+    image: dustynv/kokoro-tts:fastapi-r36.4.0-cu128-24.04
     container_name: kokoro-fastapi
     restart: always
+    runtime: nvidia
     environment:
       NVIDIA_REQUIRE_CUDA: "cuda>=12.6"
       CUDA_VERSION: "12.6.0"
       NVIDIA_VISIBLE_DEVICES: "all"
       NVIDIA_DRIVER_CAPABILITIES: "compute,utility"
+    gpus: all
     deploy:
       resources:
         reservations:
