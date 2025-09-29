@@ -3,8 +3,8 @@ version: "3.9"
 services:
   kokoro-fastapi:
     container_name: kokoro-fastapi
-    image: dustynv/kokoro-tts:fastapi-r36.4.0-cu128-24.04
-    restart: always
+    image: docker.pape.house:5000/dustynv/kokoro-tts:fastapi-r36.4.0-cu128-24.04
+    restart: unless-stopped
     platform: linux/arm64/v8
     runtime: nvidia
     gpus: all
@@ -25,8 +25,8 @@ services:
 
   ollama:
     container_name: ollama
-    image: ollama/ollama:latest
-    restart: always
+    image: docker.pape.house:5000/ollama/ollama:latest
+    restart: unless-stopped
     platform: linux/arm64/v8
     runtime: nvidia
     gpus: all
@@ -41,7 +41,7 @@ services:
       NVIDIA_VISIBLE_DEVICES: "all"
       NVIDIA_DRIVER_CAPABILITIES: "compute,utility"
     volumes:
-      - ./ollama:/root/.ollama
+      - /data/cache/ollama:/root/.ollama
     ports:
       - "11434:11434"
     stdin_open: true
@@ -49,8 +49,8 @@ services:
 
   open-webui:
     container_name: open-webui
-    image: ghcr.io/open-webui/open-webui:main
-    restart: always
+    image: docker.pape.house:5000/open-webui/open-webui:main
+    restart: unless-stopped
     platform: linux/arm64/v8
     runtime: nvidia
     gpus: all
@@ -59,7 +59,31 @@ services:
       TTS_BACKEND_URL: http://127.0.0.1:8880
       OLLAMA_BASE_URL: http://127.0.0.1:11434
     volumes:
-      - ${HOME}/open-webui:/app/backend/data
+      - ./open-webui:/app/backend/data
     depends_on:
       - ollama
 
+  speaches:
+    container_name: speaches
+    restart: unless-stopped
+    platform: linux/arm64/v8
+    runtime: nvidia
+    gpus: all
+    ports:
+      - 8000:8000
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://0.0.0.0:8000/health"] # TODO: won't work if a user changes the port
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+    image: docker.pape.house:5000/speaches-ai/speaches:latest-cuda-12.6.3
+    volumes:
+      - /data/cache/huggingface:/home/ubuntu/.cache/huggingface
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
