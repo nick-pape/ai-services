@@ -1,43 +1,6 @@
 version: "3.9"
 
 services:
-  local-ai:
-    image: localai/localai:v2.24.2-aio-gpu-nvidia-cuda-12
-    container_name: local-ai
-    restart: always
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: all
-              capabilities: [gpu]
-    environment:
-      DEBUG: "true"
-      VERBOSE: "true"
-      GGUF_USE_CUBLAS: "1"
-      LLAMA_CUBLAS: "1"
-      NVIDIA_VISIBLE_DEVICES: "all"
-      LOCALAI_LOG_LEVEL: "debug"
-      NVIDIA_DRIVER_CAPABILITIES: "compute,utility"
-      LOCALAI_F16: "true"
-
-      # 🚀 Extra environment variables to force CUDA on CLIP
-      GGML_CUDA: "1"
-      GGML_CUDA_FORCE_MMQ: "1"
-      GGML_CUDA_FORCE_CUBLAS: "1"
-      CLIP_CUBLAS: "1"
-      CLIP_CUDA: "1"
-      CLIP_USE_CUDA: "1"
-      GGUF_CUBLAS: "1"
-
-    volumes:
-      - ./models:/build/models
-    ports:
-      - "8081:8080"
-    stdin_open: true
-    tty: true
-
   kokoro-fastapi:
     image: ghcr.io/remsky/kokoro-fastapi-gpu:latest
     container_name: kokoro-fastapi
