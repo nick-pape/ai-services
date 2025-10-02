@@ -20,7 +20,8 @@ This project provides a Docker Compose configuration that spins up a complete AI
 
 1. Clone this repository:
    ```bash
-   git clone https://github.com/nick-pape/ai-services.git
+   # Replace <your-username>/<your-repo> with the actual repository path if using a fork
+   git clone https://github.com/<your-username>/<your-repo>.git
    cd ai-services
    ```
 
