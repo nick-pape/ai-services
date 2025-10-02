@@ -118,7 +118,7 @@ Ensure these directories exist and have appropriate permissions before starting 
 ## Troubleshooting
 
 ### Services won't start
-- Verify NVIDIA Container Runtime is installed: `docker run --rm --gpus all nvidia/cuda:11.0-base nvidia-smi`
+- Verify NVIDIA Container Runtime is installed: `docker run --rm --gpus all nvidia/cuda:12.6.0-base nvidia-smi`
 - Check available disk space
 - Review logs: `docker-compose logs`
 
