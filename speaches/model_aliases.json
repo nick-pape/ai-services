@@ -1,0 +1,5 @@
+{
+  "whisper-1": "Systran/faster-distil-whisper-small.en",
+  "gpt-4o-mini-transcribe": "Systran/faster-distil-whisper-small.en",
+  "gpt-4o-transcribe": "Systran/faster-distil-whisper-small.en"
+}

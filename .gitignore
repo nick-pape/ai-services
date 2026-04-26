@@ -1,1 +1,6 @@
-open-webui
+open-webui/
+.management-venv/
+models/
+*/models/
+whisper-cpp/cuda-libs/
+pocket-tts/server/
